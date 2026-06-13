@@ -29,6 +29,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -81,7 +82,13 @@ public abstract class AbstractHTTPFunction {
                 .setRedirectsEnabled(false)
                 .setRelativeRedirectsAllowed(false)
                 .build();
-        client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(ConfigProvider.getInstance().getMaxConnections());
+        connectionManager.setDefaultMaxPerRoute(ConfigProvider.getInstance().getMaxConnectionsPerRoute());
+        client = HttpClientBuilder.create()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(config)
+                .build();
         allowedDomains = ConfigProvider.getInstance().getAllowedDomainsForHttpFunctions();
     }
 

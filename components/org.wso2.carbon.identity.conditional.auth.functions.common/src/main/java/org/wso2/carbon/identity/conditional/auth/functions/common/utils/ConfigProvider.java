@@ -27,6 +27,8 @@ import java.util.List;
 
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.CHOREO_DOMAINS;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.CHOREO_TOKEN_ENDPOINT;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.CONNECTION_POOL_MAX_CONNECTIONS;
+import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.CONNECTION_POOL_MAX_CONNECTIONS_PER_ROUTE;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_CONNECTION_REQUEST_TIMEOUT;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_CONNECTION_TIMEOUT;
 import static org.wso2.carbon.identity.conditional.auth.functions.common.utils.Constants.HTTP_FUNCTION_ALLOWED_DOMAINS;
@@ -41,6 +43,8 @@ public class ConfigProvider {
     private int readTimeout;
     private int connectionRequestTimeout;
     private int requestRetryCount = 2;
+    private int maxConnections = 20;
+    private int maxConnectionsPerRoute = 20;
     private List<String> httpFunctionAllowedDomainList = new ArrayList<>();
     private List<String> choreoDomainList = new ArrayList<>();
     private final String choreoTokenEndpoint;
@@ -54,6 +58,8 @@ public class ConfigProvider {
         String readTimeoutString = IdentityUtil.getProperty(HTTP_READ_TIMEOUT);
         String connectionRequestTimeoutString = IdentityUtil.getProperty(HTTP_CONNECTION_REQUEST_TIMEOUT);
         String requestRetryCountString = IdentityUtil.getProperty(HTTP_REQUEST_RETRY_COUNT);
+        String maxConnectionsString = IdentityUtil.getProperty(CONNECTION_POOL_MAX_CONNECTIONS);
+        String maxConnectionsPerRouteString = IdentityUtil.getProperty(CONNECTION_POOL_MAX_CONNECTIONS_PER_ROUTE);
         List<String> httpFunctionAllowedDomainList = IdentityUtil.getPropertyAsList(HTTP_FUNCTION_ALLOWED_DOMAINS);
         List<String> choreoDomainList = IdentityUtil.getPropertyAsList(CHOREO_DOMAINS);
 
@@ -90,6 +96,20 @@ public class ConfigProvider {
             } catch (NumberFormatException e) {
                 LOG.error("Error while parsing max request attempts for api endpoint timeout : " +
                         requestRetryCountString, e);
+            }
+        }
+        if (maxConnectionsString != null) {
+            try {
+                maxConnections = Integer.parseInt(maxConnectionsString);
+            } catch (NumberFormatException e) {
+                LOG.error("Error while parsing max total connections : " + maxConnectionsString, e);
+            }
+        }
+        if (maxConnectionsPerRouteString != null) {
+            try {
+                maxConnectionsPerRoute = Integer.parseInt(maxConnectionsPerRouteString);
+            } catch (NumberFormatException e) {
+                LOG.error("Error while parsing max connections per route : " + maxConnectionsPerRouteString, e);
             }
         }
 
@@ -134,6 +154,16 @@ public class ConfigProvider {
     public int getRequestRetryCount() {
 
         return requestRetryCount;
+    }
+
+    public int getMaxConnections() {
+
+        return maxConnections;
+    }
+
+    public int getMaxConnectionsPerRoute() {
+
+        return maxConnectionsPerRoute;
     }
 
     public List<String> getAllowedDomainsForHttpFunctions() {
